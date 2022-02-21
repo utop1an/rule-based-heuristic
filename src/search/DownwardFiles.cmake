@@ -379,6 +379,13 @@ fast_downward_plugin(
 )
 
 fast_downward_plugin(
+    NAME PLUGIN_IDASTAR
+    HELP "Iterative deepening A* search algorithm"
+    SOURCES
+        search_engines/plugin_idastar
+)
+
+fast_downward_plugin(
     NAME PLUGIN_EAGER
     HELP "Eager (i.e., normal) best-first search"
     SOURCES
@@ -439,6 +446,20 @@ fast_downward_plugin(
     HELP "Iterated search algorithm"
     SOURCES
         search_engines/iterated_search
+)
+
+fast_downward_plugin(
+    NAME IDASTAR_SEARCH
+    HELP "Iterated d a algorithm"
+    SOURCES
+        search_engines/idastar_search
+)
+
+fast_downward_plugin(
+    NAME DFS_SEARCH
+    HELP "dfs search algorithm"
+    SOURCES
+        search_engines/dfs_search
 )
 
 fast_downward_plugin(
