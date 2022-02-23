@@ -27,14 +27,17 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
         "--search eager(tiebreaking([sum([g(), h]), h], unsafe_pruning=false),\n"
         "               reopen_closed=true, f_eval=sum([g(), h]))\n"
         "```\n", true);
-    parser.add_option<shared_ptr<Evaluator>>("eval", "evaluator for h-value");
+    parser.add_option<shared_ptr<Evaluator>>("h", "heurisitc");
 
-    idastar_search::add_options_to_parser(parser);
+    SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 
     shared_ptr<idastar_search::IdastarSearch> engine;
     if (!parser.dry_run()) {
-        opts.set("open", search_common::create_greedy_open_list_factory(opts));
+        // add openlist?
+        
+        
+        
         
         
 
