@@ -74,7 +74,7 @@ vector<State> IdastarSearch::get_succesors() {
         
         State state = state_registry.get_successor_state(current_state, op);
         utils::g_log << state.get_id() << endl;
-        StateID state_id = state.get_id();
+        state.unpack();
         successors.insert(state);
     }
     return successors.pop_as_vector();
