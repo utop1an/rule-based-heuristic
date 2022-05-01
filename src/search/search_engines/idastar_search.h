@@ -31,14 +31,8 @@ protected:
     //std::shared_ptr<Evaluator> h_evaluator;
     int bound;
     bool iterated_found_solution;
-    State current_state;
-    StateID current_predecessor_id;
-    OperatorID current_operator_id;
     int current_g;
-    int current_real_g;
-    EvaluationContext current_eval_context;
     
-
     // std::shared_ptr<SearchEngine> get_search_engine(int engine_configs_index);
     
 
@@ -46,15 +40,11 @@ protected:
     virtual void initialize() override;
     virtual SearchStatus step() override;
     std::vector<OperatorID> get_successor_operators(State &state) const;
-    std::vector<State> get_succesors();
-    int sub_search();
-
+    int sub_search(std::vector<std::pair<StateID,OperatorID>> &path);
+    void dump(std::vector<std::pair<StateID,OperatorID>> &path);
 public:
     explicit IdastarSearch(const options::Options &opts);
     virtual ~IdastarSearch() = default;
-
-    virtual void save_plan_if_necessary() override;
-
     virtual void print_statistics() const override;
     void dump_search_space() const;
 };
