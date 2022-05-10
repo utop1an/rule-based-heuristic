@@ -18,31 +18,41 @@
 #include "../search_space.h"
 #include "../algorithms/ordered_set.h"
 
+#include "../rule_database/rule_databse_ex.h"
+#include "../rule_database/my_best_first_open_list.h"
+#include <map>
+
 namespace options {
 class Options;
+}
+
+namespace rule_database_ex{
+class RuleDatabaseEx;
 }
 
 namespace idastar_search {
 class IdastarSearch : public SearchEngine {
 protected:    
     // todo: correct the openlist
-    std::unique_ptr<EdgeOpenList> open_list;
     std::shared_ptr<Evaluator> evaluator;
+
     //std::shared_ptr<Evaluator> h_evaluator;
     int bound;
     bool iterated_found_solution;
     int current_g;
+    int count;
+    bool update;
+    rule_database_ex::RuleDatabaseEx RuleDatabase;
     
-    // std::shared_ptr<SearchEngine> get_search_engine(int engine_configs_index);
-    
-
-
     virtual void initialize() override;
     virtual SearchStatus step() override;
     std::vector<OperatorID> get_successor_operators(State &state) const;
-    int sub_search(std::vector<std::pair<StateID,OperatorID>> &path);
+    std::pair<int,my_best_first_open_list::MyBestFirstOpenList> get_lookahead(State &state, int g);
+    int sub_search(std::vector<std::pair<StateID,OperatorID>> &path, int g);
+    std::map<int, std::vector<int>> updateRule(State &state, int lookahead);
     void dump(std::vector<std::pair<StateID,OperatorID>> &path);
 public:
+    
     explicit IdastarSearch(const options::Options &opts);
     virtual ~IdastarSearch() = default;
     virtual void print_statistics() const override;
