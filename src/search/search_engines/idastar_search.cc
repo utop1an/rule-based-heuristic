@@ -28,6 +28,7 @@ IdastarSearch::IdastarSearch(const Options &opts)
       // count for cases that if h<l
       count(0),
       update(true),
+      RuleDatabase(),
       iterated_found_solution(false) {
     utils::g_log << "Launching IDA* Search..." << endl;
     
@@ -68,7 +69,8 @@ pair<int, MyBestFirstOpenList> IdastarSearch::get_lookahead(State &state, int g)
         
         // compute rulebased h
         int h1 = eval_context.get_evaluator_value(evaluator.get());
-        int h2 = 0;
+        successor.unpack();
+        int h2 = RuleDatabase.calculate(successor.get_unpacked_values(), h1).first;
         int h = max(eval_context.get_evaluator_value(evaluator.get()),h2);
         int l = h + get_adjusted_cost(op);
         if (l < lookahed)
@@ -78,7 +80,7 @@ pair<int, MyBestFirstOpenList> IdastarSearch::get_lookahead(State &state, int g)
     return make_pair(lookahed, openlist);
 }
 
-map<int, vector<int>> IdastarSearch::updateRule(State &state, int lookahed){
+void IdastarSearch::updateRule(State &state, int lookahed){
     map<int, vector<int>> Q;
     // extract Q for state
     count += RuleDatabase.update(lookahed, Q);
@@ -164,9 +166,10 @@ int IdastarSearch::sub_search(vector<pair<StateID,OperatorID>> &path, int g) {
     // or we just build another database inside idastar, jumpover the inbuilt frame of evals, hs....
     EvaluationContext eval_context(current_state, g, false, &statistics);
     int h = eval_context.get_evaluator_value(evaluator.get());
-    if (update)
+    if (update){
+        current_state.unpack();
         h = max(RuleDatabase.calculate(current_state.get_unpacked_values(), -1).first, h);
-        
+    }    
     statistics.inc_evaluated_states();
     int f = g + h;
     utils::g_log << "f=" << f << endl;  

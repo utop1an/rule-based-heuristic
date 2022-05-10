@@ -49,7 +49,7 @@ protected:
     std::vector<OperatorID> get_successor_operators(State &state) const;
     std::pair<int,my_best_first_open_list::MyBestFirstOpenList> get_lookahead(State &state, int g);
     int sub_search(std::vector<std::pair<StateID,OperatorID>> &path, int g);
-    std::map<int, std::vector<int>> updateRule(State &state, int lookahead);
+    void updateRule(State &state, int lookahead);
     void dump(std::vector<std::pair<StateID,OperatorID>> &path);
 public:
     
