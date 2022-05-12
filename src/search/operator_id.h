@@ -40,6 +40,10 @@ public:
     bool operator==(const OperatorID &other) const {
         return index == other.index;
     }
+    
+    bool operator==(const int &other) const{
+        return index == other;
+    }
 
     bool operator!=(const OperatorID &other) const {
         return !(*this == other);
