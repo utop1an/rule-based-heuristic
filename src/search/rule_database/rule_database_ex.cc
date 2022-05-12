@@ -1,51 +1,57 @@
-#include "rule_databse_ex.h"
-
+#include "rule_database_ex.h"
 
 using namespace std;
 
 namespace rule_database_ex {
-    typedef map<int, vector<int>> Q;
+    typedef map<int, set<int>> Q;
     
     RuleDatabaseEx::RuleDatabaseEx():
         size(0),
         count(0){}
     Bucket::Bucket():
         size(0){}
-    Distribution::Distribution():
-        size(0){}
+    Distribution::Distribution(int var):
+        var(var){}
+    Distribution::Distribution(){}
     Container::Container():
-        size(0),
         heuristic(0){}
+    Container::Container(set<int> vals):
+        vals(vals),
+        heuristic(0){}
+    
 
     int RuleDatabaseEx::update(int h, Q q){
-        
-        Bucket bucket;
-        buckets[h] = bucket;
-        int i = bucket.update(h,q);
+        if(buckets.count(h)==0){
+            Bucket bucket;
+            buckets[h] =bucket;
+        }
+        int i = buckets[h].update(h,q);
         count+=i;
         return i;
     }
 
     int Bucket::update(int h, Q q){
-        Distribution distribution;
         int var = q.begin()->first;
-        distributions[var] = distribution;
-        distribution.setVar(var);
-        return distribution.update(h,q);
+        if (distributions.count(var)==0){
+            Distribution distribution(var);
+            distributions[var] = distribution;
+        }
+        return distributions[var].update(h,q);
     }
 
     int Distribution::update(int h, Q q){
-        Container container;
-        vector<int> vals = q.begin()->second; 
-        containers[vals] = container;
-        container.setVals(vals);
-        return container.update(h,q);
+        set<int> vals = q.begin()->second; 
+        if(containers.count(vals)==0){
+            Container container(vals);
+            containers[vals]=container;
+        }
+        return containers[vals].update(h,q);
     }
 
     int Container::update(int h, Q q){
         q.erase(q.begin());
         if (q.size()==0){
-            if (heuristic > h)
+            if (heuristic >= h)
                 return 0;
             else {
                 if(heuristic==0){
@@ -53,14 +59,16 @@ namespace rule_database_ex {
                     return 1;
                 }else{
                    heuristic =h;
-                    return 0; 
+                    return 1; 
                 }
             }
         }else{
             int var = q.begin()->first;
-            Distribution distribution;
-            distributions[var] = distribution;
-            return distribution.update(h,q);
+            if (distributions.count(var)==0){
+                Distribution distribution(var);
+                distributions[var] = distribution;
+            }
+            return distributions[var].update(h,q);
         }
     }
 
@@ -70,15 +78,28 @@ namespace rule_database_ex {
             Q emptyQ;
             return make_pair(0, emptyQ);
         }
-        if (bound ==-1) {
+        if (bound==-1) {
             for(map<int,Bucket>::reverse_iterator iter=buckets.rbegin();iter!=buckets.rend();iter++){
-                return iter->second.calculate(state_values);
+                
+                pair<int,Q> rule = iter->second.calculate(state_values);
+                if (rule.first >0)
+                    return rule;
             }
         }else {
             for(map<int,Bucket>::iterator iter=buckets.begin();iter!=buckets.end() && iter->first>=bound;iter++){
-                return iter->second.calculate(state_values);
+                pair<int,Q> rule = iter->second.calculate(state_values);
+                if (rule.first >0)
+                    return rule;
+            }
+            for(map<int,Bucket>::reverse_iterator iter=buckets.rbegin();iter!=buckets.rend();iter++){
+                
+                pair<int,Q> rule = iter->second.calculate(state_values);
+                if (rule.first >0)
+                    return rule;
             }
         }
+        Q emptyQ;
+        return make_pair(0, emptyQ);
     }
 
     pair<int,Q> Bucket::calculate(vector<int> state_values){
@@ -93,14 +114,14 @@ namespace rule_database_ex {
     }
 
     pair<int,Q> Distribution::calculate(vector<int> state_values, Q candidates){
-        for(map<vector<int>,Container>::iterator iter=containers.begin();iter!=containers.end();iter++){
-            vector<int> vals=iter->first;
+        for(map<set<int>,Container>::iterator iter=containers.begin();iter!=containers.end();iter++){
+            set<int> vals=iter->first;
             if (find(vals.begin(), vals.end(), state_values.at(var))==vals.end()){
                 candidates[var] = vals;
                 pair<int,Q> rule = iter->second.calculate(state_values, candidates);
                 if (rule.first>0)
                     return rule;
-                //candidates.erase(var);
+                candidates.erase(var);
             }
         }
         
@@ -128,12 +149,12 @@ namespace rule_database_ex {
     void Bucket::dump(){
         map<int,Distribution>::iterator iter;
         for (iter=distributions.begin();iter!=distributions.end();iter++){
-            map<int, vector<int>> q;
+            Q q;
             iter->second.dump(q);
         }
     }
     void Distribution::dump(Q q){
-        map<vector<int>,Container>::iterator iter;
+        map<set<int>,Container>::iterator iter;
         for (iter=containers.begin();iter!=containers.end();iter++){
             q[var] = iter->first;
             iter->second.dump(q);
@@ -142,7 +163,7 @@ namespace rule_database_ex {
     void Container::dump(Q q){
         if (heuristic!=0){
             cout<< "Q:[";
-            for (map<int,vector<int>>::iterator iter=q.begin();iter!=q.end();iter++){
+            for (map<int,set<int>>::iterator iter=q.begin();iter!=q.end();iter++){
                 cout << "var " << iter->first << ": vals <";
                 for(int val: iter->second){
                     cout<< val << " ";

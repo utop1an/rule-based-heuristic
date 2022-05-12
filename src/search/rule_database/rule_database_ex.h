@@ -1,15 +1,16 @@
 #ifndef RULE_DATABASE_EX_H
 #define RULE_DATABASE_EX_H
 
-#include <deque>
 #include <map>
+#include <set>
 #include <vector>
 #include <iostream>
 #include <algorithm>
 
+
 using namespace std;
 namespace rule_database_ex {
-typedef map<int, vector<int>> Q;
+typedef map<int, set<int>> Q;
 
 class Distribution;
 
@@ -23,25 +24,27 @@ public:
 
 class Container: public Layer {
     map<int, Distribution> distributions;
-    vector<int> vals;
+    set<int> vals;
     int heuristic;
     int size;
 public:
     explicit Container();
+    explicit Container(set<int> vals);
     int update(int h, Q q);
     pair<int,Q> calculate(vector<int> state_values, Q candidates);
     void dump(Q q);
-    void setVals(vector<int> vs){
+    void setVals(set<int> vs){
         vals = vs;
     }
 };
 
 class Distribution: public Layer {
-    map<vector<int>, Container> containers;
+    map<set<int>, Container> containers;
     int var;
     int size;
 public:
     explicit Distribution();
+    explicit Distribution(int var);
     int update(int h, Q q);
     pair<int,Q> calculate(vector<int> state_values, Q candidates);
     void dump(Q q);

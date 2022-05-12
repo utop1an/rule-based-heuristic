@@ -453,14 +453,10 @@ fast_downward_plugin(
     HELP "Iterated d a algorithm"
     SOURCES
         search_engines/idastar_search
+        rule_database/my_best_first_open_list
+        rule_database/rule_database_ex
 )
 
-fast_downward_plugin(
-    NAME DFS_SEARCH
-    HELP "dfs search algorithm"
-    SOURCES
-        search_engines/dfs_search
-)
 
 fast_downward_plugin(
     NAME LAZY_SEARCH
@@ -502,6 +498,14 @@ fast_downward_plugin(
     HELP "The 'blind search' heuristic"
     SOURCES
         heuristics/blind_search_heuristic
+    DEPENDS TASK_PROPERTIES
+)
+
+fast_downward_plugin(
+    NAME ZERO_HEURISTIC
+    HELP "The zero heuristic"
+    SOURCES
+        heuristics/zero_heuristic
     DEPENDS TASK_PROPERTIES
 )
 

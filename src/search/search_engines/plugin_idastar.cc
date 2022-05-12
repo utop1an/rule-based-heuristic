@@ -28,20 +28,13 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
         "               reopen_closed=true, f_eval=sum([g(), h]))\n"
         "```\n", true);
     parser.add_option<shared_ptr<Evaluator>>("h", "heurisitc");
-
+    parser.add_option<bool>("u", "update");
     SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 
     shared_ptr<idastar_search::IdastarSearch> engine;
     if (!parser.dry_run()) {
         // add openlist?
-        
-        
-        
-        
-        
-
-        //
         
         engine = make_shared<idastar_search::IdastarSearch>(opts);
     }

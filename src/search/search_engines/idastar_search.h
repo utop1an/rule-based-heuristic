@@ -37,9 +37,8 @@ protected:
     std::shared_ptr<Evaluator> evaluator;
 
     //std::shared_ptr<Evaluator> h_evaluator;
-    int bound;
+    int step_bound;
     bool iterated_found_solution;
-    int current_g;
     int count;
     bool update;
     rule_database_ex::RuleDatabaseEx RuleDatabase;
@@ -47,10 +46,11 @@ protected:
     virtual void initialize() override;
     virtual SearchStatus step() override;
     std::vector<OperatorID> get_successor_operators(State &state) const;
-    std::pair<int,my_best_first_open_list::MyBestFirstOpenList> get_lookahead(State &state, int g);
+    std::pair<int,my_best_first_open_list::MyBestFirstOpenList> get_lookahead(State &state, std::vector<OperatorID> applicable_operators,int g);
     int sub_search(std::vector<std::pair<StateID,OperatorID>> &path, int g);
-    void updateRule(State &state, int lookahead);
+    void updateRule(State &state,std::vector<OperatorID> applicable_operators, int lookahead);
     void dump(std::vector<std::pair<StateID,OperatorID>> &path);
+    std::pair<int, std::map<int, std::set<int>>> computeRuleDatabaseHeuristic(State &state, int bound);
 public:
     
     explicit IdastarSearch(const options::Options &opts);
