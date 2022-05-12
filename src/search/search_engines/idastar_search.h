@@ -18,7 +18,7 @@
 #include "../search_space.h"
 #include "../algorithms/ordered_set.h"
 
-#include "../rule_database/rule_databse_ex.h"
+#include "../rule_database/rule_database_ex.h"
 #include "../rule_database/my_best_first_open_list.h"
 #include <map>
 
