@@ -1,6 +1,7 @@
 #ifndef RULE_DATABASE_EX_H
 #define RULE_DATABASE_EX_H
 
+#include "../task_proxy.h"
 #include <map>
 #include <set>
 #include <vector>
@@ -30,12 +31,9 @@ class Container: public Layer {
 public:
     explicit Container();
     explicit Container(set<int> vals);
-    int update(int h, Q q);
-    pair<int,Q> calculate(vector<int> state_values, Q candidates);
+    int update(int h, Q &q);
+    pair<int,Q> calculate(vector<int> &state_values, Q &candidates);
     void dump(Q q);
-    void setVals(set<int> vs){
-        vals = vs;
-    }
 };
 
 class Distribution: public Layer {
@@ -45,12 +43,9 @@ class Distribution: public Layer {
 public:
     explicit Distribution();
     explicit Distribution(int var);
-    int update(int h, Q q);
-    pair<int,Q> calculate(vector<int> state_values, Q candidates);
+    int update(int h, Q &q);
+    pair<int,Q> calculate(vector<int> &state_values, Q &candidates);
     void dump(Q q);
-    void setVar(int v){
-        var =v;
-    }
 };
 
 class Bucket: public Layer{
@@ -58,8 +53,8 @@ class Bucket: public Layer{
     int size;
 public:
     explicit Bucket();
-    int update(int h, Q q);
-    pair<int,Q> calculate(vector<int> state_values);
+    int update(int h, Q &q);
+    pair<int,Q> calculate(vector<int> &state_values);
     void dump();
 };
 
@@ -70,9 +65,10 @@ class RuleDatabaseEx: public Layer {
     
 public:
     explicit RuleDatabaseEx();
-    int update(int h, Q q);
-    pair<int,Q> calculate(vector<int> state_values,int bound);
+    int update(int h, Q &q);
+    pair<int,Q> calculate(State &state,int bound);
     void dump();
+    int get_count(){return count;}
 };
 
 }

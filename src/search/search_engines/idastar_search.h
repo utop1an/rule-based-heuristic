@@ -1,9 +1,7 @@
 #ifndef SEARCH_ENGINES_IDASTAR_SEARCH_H
 #define SEARCH_ENGINES_IDASTAR_SEARCH_H
 
-#include "../open_list.h"
 #include "../option_parser_util.h"
-#include "../search_engine.h"
 
 #include "../options/registries.h"
 #include "../options/predefinitions.h"
@@ -19,6 +17,7 @@
 #include "../algorithms/ordered_set.h"
 
 #include "../rule_database/rule_database_ex.h"
+#include "../rule_database/rule_tree_ex.h"
 #include "../rule_database/my_best_first_open_list.h"
 #include <map>
 
@@ -39,9 +38,11 @@ protected:
     //std::shared_ptr<Evaluator> h_evaluator;
     int step_bound;
     bool iterated_found_solution;
-    int count;
     bool update;
-    rule_database_ex::RuleDatabaseEx RuleDatabase;
+    bool timing_of_update;
+    bool debug;
+    // rule_database_ex::RuleDatabaseEx RuleDatabase;
+    rule_tree_ex::RuleTree RuleDatabase;
     
     virtual void initialize() override;
     virtual SearchStatus step() override;

@@ -455,6 +455,7 @@ fast_downward_plugin(
         search_engines/idastar_search
         rule_database/my_best_first_open_list
         rule_database/rule_database_ex
+        rule_database/rule_tree_ex
 )
 
 

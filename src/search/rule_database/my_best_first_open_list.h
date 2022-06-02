@@ -17,6 +17,7 @@ public:
     void do_insertion(pair<EvaluationContext, OperatorID> info,
                               const int h);
     explicit MyBestFirstOpenList();
+    virtual ~MyBestFirstOpenList() = default;
     pair<EvaluationContext, OperatorID> remove_min();
     bool empty() const ;
     void clear() ;

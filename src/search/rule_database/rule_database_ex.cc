@@ -20,7 +20,7 @@ namespace rule_database_ex {
         heuristic(0){}
     
 
-    int RuleDatabaseEx::update(int h, Q q){
+    int RuleDatabaseEx::update(int h, Q &q){
         if(buckets.count(h)==0){
             Bucket bucket;
             buckets[h] =bucket;
@@ -30,7 +30,7 @@ namespace rule_database_ex {
         return i;
     }
 
-    int Bucket::update(int h, Q q){
+    int Bucket::update(int h, Q &q){
         int var = q.begin()->first;
         if (distributions.count(var)==0){
             Distribution distribution(var);
@@ -39,7 +39,7 @@ namespace rule_database_ex {
         return distributions[var].update(h,q);
     }
 
-    int Distribution::update(int h, Q q){
+    int Distribution::update(int h, Q &q){
         set<int> vals = q.begin()->second; 
         if(containers.count(vals)==0){
             Container container(vals);
@@ -48,20 +48,15 @@ namespace rule_database_ex {
         return containers[vals].update(h,q);
     }
 
-    int Container::update(int h, Q q){
+    int Container::update(int h, Q& q){
         q.erase(q.begin());
         if (q.size()==0){
-            if (heuristic >= h)
-                return 0;
-            else {
-                if(heuristic==0){
+            if(heuristic==0){
                     heuristic =h;
                     return 1;
                 }else{
-                   heuristic =h;
-                    return 1; 
+                   return 0; 
                 }
-            }
         }else{
             int var = q.begin()->first;
             if (distributions.count(var)==0){
@@ -72,8 +67,10 @@ namespace rule_database_ex {
         }
     }
 
-    pair<int,Q> RuleDatabaseEx::calculate(vector<int> state_values,int bound){
+    pair<int,Q> RuleDatabaseEx::calculate(State &state,int bound){
         // bound -1 means greaterQ value first
+        state.unpack();
+        vector<int> state_values = state.get_unpacked_values();
         if (count == 0){
             Q emptyQ;
             return make_pair(0, emptyQ);
@@ -86,23 +83,26 @@ namespace rule_database_ex {
                     return rule;
             }
         }else {
-            for(map<int,Bucket>::iterator iter=buckets.begin();iter!=buckets.end() && iter->first>=bound;iter++){
-                pair<int,Q> rule = iter->second.calculate(state_values);
-                if (rule.first >0)
-                    return rule;
+            for(map<int,Bucket>::iterator iter=buckets.begin();iter!=buckets.end();iter++){
+                if (iter->first>=bound){
+                    pair<int,Q> rule = iter->second.calculate(state_values);
+                    if (rule.first >0)
+                        return rule;
+                }
             }
             for(map<int,Bucket>::reverse_iterator iter=buckets.rbegin();iter!=buckets.rend();iter++){
-                
-                pair<int,Q> rule = iter->second.calculate(state_values);
-                if (rule.first >0)
-                    return rule;
+                if (iter->first < bound){
+                    pair<int,Q> rule = iter->second.calculate(state_values);
+                    if (rule.first >0)
+                        return rule;
+                }
             }
         }
         Q emptyQ;
         return make_pair(0, emptyQ);
     }
 
-    pair<int,Q> Bucket::calculate(vector<int> state_values){
+    pair<int,Q> Bucket::calculate(vector<int> &state_values){
         for(map<int,Distribution>::iterator iter=distributions.begin();iter!=distributions.end();iter++){
             Q emptyQ;
             pair<int,Q> rule = iter->second.calculate(state_values, emptyQ);
@@ -113,7 +113,7 @@ namespace rule_database_ex {
         return make_pair(0, emptyQ);
     }
 
-    pair<int,Q> Distribution::calculate(vector<int> state_values, Q candidates){
+    pair<int,Q> Distribution::calculate(vector<int> &state_values, Q &candidates){
         for(map<set<int>,Container>::iterator iter=containers.begin();iter!=containers.end();iter++){
             set<int> vals=iter->first;
             if (find(vals.begin(), vals.end(), state_values.at(var))==vals.end()){
@@ -128,7 +128,7 @@ namespace rule_database_ex {
         return make_pair(0,candidates);
     }
     
-    pair<int,Q> Container::calculate(vector<int> state_values, Q candidates){
+    pair<int,Q> Container::calculate(vector<int> &state_values, Q &candidates){
         if (heuristic!=0)
             return make_pair(heuristic,candidates);
         for(map<int,Distribution>::iterator iter=distributions.begin();iter!=distributions.end();iter++){
