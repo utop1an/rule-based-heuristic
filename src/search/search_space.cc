@@ -53,6 +53,15 @@ void SearchNode::open_initial() {
     info.creating_operator = OperatorID::no_operator;
 }
 
+void SearchNode::reopen_initial() {
+    assert(info.status == SearchNodeInfo::CLOSED);
+    info.status = SearchNodeInfo::OPEN;
+    info.g = 0;
+    info.real_g = 0;
+    info.parent_state_id = StateID::no_state;
+    info.creating_operator = OperatorID::no_operator;
+}
+
 void SearchNode::open(const SearchNode &parent_node,
                       const OperatorProxy &parent_op,
                       int adjusted_cost) {

@@ -29,6 +29,7 @@ public:
     int get_real_g() const;
 
     void open_initial();
+    void reopen_initial();
     void open(const SearchNode &parent_node,
               const OperatorProxy &parent_op,
               int adjusted_cost);

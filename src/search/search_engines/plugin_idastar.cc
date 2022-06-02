@@ -29,6 +29,8 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
         "```\n", true);
     parser.add_option<shared_ptr<Evaluator>>("h", "heurisitc");
     parser.add_option<bool>("u", "update");
+    parser.add_option<bool>("d", "debug");
+    parser.add_option<bool>("t", "update timing");
     SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 
