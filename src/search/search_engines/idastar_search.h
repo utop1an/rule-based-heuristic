@@ -14,34 +14,26 @@
 #include "../search_engine.h"
 #include "../search_progress.h"
 #include "../search_space.h"
-#include "../algorithms/ordered_set.h"
 
-#include "../rule_database/rule_database_ex.h"
+
 #include "../rule_database/rule_tree_ex.h"
 #include "../rule_database/my_best_first_open_list.h"
-#include <map>
 
 namespace options {
 class Options;
 }
 
-namespace rule_database_ex{
-class RuleDatabaseEx;
-}
-
 namespace idastar_search {
 class IdastarSearch : public SearchEngine {
 protected:    
-    // todo: correct the openlist
-    std::shared_ptr<Evaluator> evaluator;
 
-    //std::shared_ptr<Evaluator> h_evaluator;
+
+    std::shared_ptr<Evaluator> evaluator;
     int step_bound;
     bool iterated_found_solution;
     bool update;
     bool timing_of_update;
     bool debug;
-    // rule_database_ex::RuleDatabaseEx RuleDatabase;
     rule_tree_ex::RuleTree RuleDatabase;
     
     virtual void initialize() override;

@@ -3,9 +3,6 @@
 #include "../option_parser.h"
 #include "../plugin.h"
 #include "../task_utils/task_properties.h"
-#include "../open_list_factory.h"
-#include "../open_lists/best_first_open_list.h"
-#include "../evaluators/g_evaluator.h"
 #include "../task_utils/successor_generator.h"
 
 #include "../rule_database/my_best_first_open_list.h"
@@ -18,7 +15,7 @@
 
 using namespace std;
 using namespace my_best_first_open_list;
-using namespace rule_database_ex;
+using namespace rule_tree_ex;
 namespace idastar_search {
 IdastarSearch::IdastarSearch(const Options &opts)
     : SearchEngine(opts),
@@ -94,6 +91,7 @@ void dumpQ(map<int, set<int>> Q, int heuristic){
 pair<int, map<int, set<int>>> IdastarSearch::computeRuleDatabaseHeuristic(State &state, int search_bound){
     
     if(task_properties::is_goal_state(task_proxy,state)){
+        
         Q emptyQ;
         return make_pair(0,emptyQ);
     }else {
@@ -235,7 +233,7 @@ int IdastarSearch::sub_search(vector<pair<StateID,OperatorID>> &path, int g) {
         current_node.close();
         return f;
     }
-    if (check_goal_and_set_plan(current_state)) {
+    if (task_properties::is_goal_state(task_proxy, current_state)) {
         iterated_found_solution = true;
         return -1;
     }
