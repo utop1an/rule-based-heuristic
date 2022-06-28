@@ -34,6 +34,8 @@ protected:
     bool update;
     bool timing_of_update;
     bool debug;
+    bool do_shrink;
+    int shrink_count;
     rule_tree_ex::RuleTree RuleDatabase;
     
     virtual void initialize() override;
@@ -42,6 +44,7 @@ protected:
     std::pair<int,my_best_first_open_list::MyBestFirstOpenList> get_lookahead(State &state, std::vector<OperatorID> applicable_operators,int g);
     int sub_search(std::vector<std::pair<StateID,OperatorID>> &path, int g);
     void updateRule(State &state,std::vector<OperatorID> applicable_operators, int lookahead);
+    std::map<int, std::set<int>> shrink(std::map<int, std::set<int>> q);
     void dump(std::vector<std::pair<StateID,OperatorID>> &path);
     std::pair<int, std::map<int, std::set<int>>> computeRuleDatabaseHeuristic(State &state, int bound);
 public:

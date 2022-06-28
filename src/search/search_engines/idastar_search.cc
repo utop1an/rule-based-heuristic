@@ -25,6 +25,8 @@ IdastarSearch::IdastarSearch(const Options &opts)
       RuleDatabase(),
       debug(opts.get<bool>("d")),
       timing_of_update(opts.get<bool>("t")),
+      do_shrink(opts.get<bool>("s")),
+      shrink_count(0),
       iterated_found_solution(false) {
     utils::g_log << "Launching IDA* Search..." << endl;  
 }
@@ -100,6 +102,59 @@ pair<int, map<int, set<int>>> IdastarSearch::computeRuleDatabaseHeuristic(State 
     }
 }
 
+Q IdastarSearch::shrink(Q q){
+    // for var var1 in q, if var can only take 1 val val1 (inclusive), check other var var2 (with multi vals)(exclusive),
+    // val2,val is mutex to var1,val1, delete val2,val
+    // note that, for var2 with only one val, we cannot delete it?
+    Q output = Q(q);
+    for (auto iter=q.begin();iter!=q.end(); iter++){
+        VariableProxy var = task_proxy.get_variables()[iter->first];
+        if (iter->second.size() == var.get_domain_size()-1) {
+            // check fact
+            int val;
+            for (int candidate=0; candidate<var.get_domain_size(); candidate++){
+                if (iter->second.find(candidate) == iter->second.end()){
+                    val = candidate;
+                    break;
+                }
+            }
+            FactProxy fact = var.get_fact(val);
+
+
+            for (auto iter2=q.begin();iter2!=q.end(); iter2++){
+                VariableProxy var2 = task_proxy.get_variables()[iter2->first];
+                if (iter2->second.size() != var2.get_domain_size()-1) {
+                    // emmmmm....
+                    for (int val2:iter2->second){
+                        FactProxy fact2 = var2.get_fact(val2); 
+                        if (fact.is_mutex(fact2)){
+                            ++shrink_count;
+                            output[iter2->first].erase(val2);
+                        }
+                    }
+                } else {
+                    // check real mutex?
+                    // useless.....
+                    int val2;
+                    for (int candidate=0; candidate<var2.get_domain_size(); candidate++){
+                        if (iter2->second.find(candidate) == iter2->second.end()){
+                            val2 = candidate;
+                            break;
+                        }
+                    }
+                    FactProxy fact2 = var2.get_fact(val2);
+                    if (fact.is_mutex(fact2)){
+                        cout<< "got this" << endl;
+                        output.erase(iter2->first);
+                    }
+                }
+            }
+        }
+    }
+    return output;
+
+}
+
 void IdastarSearch::updateRule(State &state,vector<OperatorID> applicable_operators, int lookahead){
     map<int, set<int>> Q;
     state.unpack();
@@ -134,6 +189,8 @@ void IdastarSearch::updateRule(State &state,vector<OperatorID> applicable_operat
             }
         }
     }
+    if (do_shrink)
+        Q = shrink(Q);
     RuleDatabase.update(lookahead, Q);
 }
 
@@ -148,7 +205,7 @@ SearchStatus IdastarSearch::step() {
     if (iterated_found_solution) {
         if (debug)
             RuleDatabase.dump();
-        
+        utils::g_log << "shrink count:" << shrink_count << endl;  
         utils::g_log << "total database size:" << RuleDatabase.get_count() << endl;  
         return SOLVED;
     }
@@ -233,7 +290,7 @@ int IdastarSearch::sub_search(vector<pair<StateID,OperatorID>> &path, int g) {
         current_node.close();
         return f;
     }
-    if (task_properties::is_goal_state(task_proxy, current_state)) {
+    if (check_goal_and_set_plan(current_state)) {
         iterated_found_solution = true;
         return -1;
     }
