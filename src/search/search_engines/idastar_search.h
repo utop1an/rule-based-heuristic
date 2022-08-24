@@ -35,6 +35,7 @@ protected:
     bool timing_of_update;
     bool debug;
     bool do_shrink;
+    bool do_init_rules;
     int shrink_count;
     rule_tree_ex::RuleTree RuleDatabase;
     
@@ -45,8 +46,9 @@ protected:
     int sub_search(std::vector<std::pair<StateID,OperatorID>> &path, int g);
     void updateRule(State &state,std::vector<OperatorID> applicable_operators, int lookahead);
     std::map<int, std::set<int>> shrink(std::map<int, std::set<int>> q);
+    void init_rules(std::set<std::pair<int,int>> candidate,  int current_h);
     void dump(std::vector<std::pair<StateID,OperatorID>> &path);
-    std::pair<int, std::map<int, std::set<int>>> computeRuleDatabaseHeuristic(State &state, int bound);
+    std::pair<int, std::map<int, std::set<int>>> computeRuleDatabaseHeuristic(State &state, int bound, bool is_statistical);
 public:
     
     explicit IdastarSearch(const options::Options &opts);

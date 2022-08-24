@@ -26,27 +26,101 @@ IdastarSearch::IdastarSearch(const Options &opts)
       debug(opts.get<bool>("d")),
       timing_of_update(opts.get<bool>("t")),
       do_shrink(opts.get<bool>("s")),
+      do_init_rules(opts.get<bool>("i")),
       shrink_count(0),
       iterated_found_solution(false) {
     utils::g_log << "Launching IDA* Search..." << endl;  
+}
+
+void dumpQ(map<int, set<int>> Q, int heuristic){
+    cout<< "Q:[";
+        for (map<int,set<int>>::iterator iter=Q.begin();iter!=Q.end();iter++){
+            cout << "var " << iter->first << ": vals <";
+            for(int val: iter->second){
+                cout<< val << " ";
+            }
+            cout << ">";
+        }
+        cout << "], h=" << heuristic << endl;
 }
 
 void IdastarSearch::initialize(){
     assert(evaluator);
     GoalsProxy goals = task_proxy.get_goals();
     for (FactProxy goal: goals){
-        map<int, set<int>> Q;
-        Q[goal.get_variable().get_id()].insert(goal.get_value());
-        RuleDatabase.update(1,Q);
+        Q goalQ;
+        goalQ[goal.get_variable().get_id()].insert(goal.get_value());
+        RuleDatabase.update(1,goalQ, true);
+        if (do_init_rules){
+            Q emptyQ;
+            set<pair<int,int>> candidate;
+            set<pair<int,int>> prevs;
+            candidate.insert(make_pair(goal.get_variable().get_id(),goal.get_value()));
+            init_rules(candidate,  1);
+        }
     }
     // initialize the step_bound value = h of initial state
     State init = state_registry.get_initial_state();
     EvaluationContext eval_context(init, 0, false, &statistics);
-    step_bound = max(eval_context.get_evaluator_value(evaluator.get()), computeRuleDatabaseHeuristic(init, -1).first);
+    step_bound = max(eval_context.get_evaluator_value(evaluator.get()), computeRuleDatabaseHeuristic(init, -1, true).first);
     utils::g_log << "initialize: step_bound =" <<step_bound << endl;
     // initialize the rule-database & initialize the initial-goal rules
     
-    
+}
+
+void IdastarSearch::init_rules(set<pair<int,int>> candidate, int current_h) {
+    set<pair<int,int>> q;
+    set<pair<int,int>> res;
+    for (auto p:candidate){
+        set<pair<int,int>> q1;
+        for (OperatorProxy op : task_proxy.get_operators()){
+            set<pair<int,int>> q2;
+            bool is_prev_op = false;
+
+            for (EffectProxy eff : op.get_effects()){
+                if (eff.get_fact().get_variable().get_id() == p.first && eff.get_fact().get_value() == p.second){
+                    is_prev_op = true;
+                    break;
+                }
+            }
+            if (is_prev_op){
+                for (FactProxy pre : op.get_preconditions()){
+                    
+                    q2.insert(make_pair(pre.get_variable().get_id(), pre.get_value()));
+                    // utils::g_log << op.get_name() << pre.get_variable().get_id() << "-" << pre.get_value() << endl; 
+                }
+            }
+            
+            if (q2.size()!=0){
+                if (q1.size()==0){
+                    q1 = q2;
+                }else {
+                    set<pair<int,int>> tmp;
+                    set_intersection(q1.begin(),q1.end(), q2.begin(),q2.end(), inserter(tmp,tmp.end()));
+                    q1 = tmp;
+                }
+            }
+        }
+        if (q1.size()!=0){
+            if (q.size()==0){
+                q = q1;
+            }else {
+                set_union(q.begin(),q.end(),q1.begin(),q1.end(), inserter(q,q.end()));
+            }
+        }
+        
+        set_union(q.begin(),q.end(),candidate.begin(),candidate.end(), inserter(res,res.end()));
+    }
+    if (res.size()!= candidate.size()){
+        // turn set into rule
+        Q emptyQ;
+        for (auto p : res){
+            emptyQ[p.first].insert(p.second);
+        }
+        RuleDatabase.update(current_h+1, emptyQ, true);
+        // add rule
+        init_rules(res, current_h+1);
+    }
 }
 
 vector<OperatorID> IdastarSearch::get_successor_operators(State &state) const {
@@ -67,7 +141,8 @@ pair<int, MyBestFirstOpenList> IdastarSearch::get_lookahead(State &state,vector<
         EvaluationContext eval_context(successor, g+get_adjusted_cost(op), false, &statistics);
         int h1 = eval_context.get_evaluator_value(evaluator.get());
         successor.unpack();
-        pair<int, map<int, set<int>>> rule = computeRuleDatabaseHeuristic(successor,-1);
+        // update rule statistical for lookahead?
+        pair<int, map<int, set<int>>> rule = computeRuleDatabaseHeuristic(successor,-1, true);
         int h2 = rule.first;
         int h = max(h1,h2);
         int l = h + get_adjusted_cost(op);
@@ -78,26 +153,15 @@ pair<int, MyBestFirstOpenList> IdastarSearch::get_lookahead(State &state,vector<
     return make_pair(lookahead, openlist);
 }
 
-void dumpQ(map<int, set<int>> Q, int heuristic){
-    cout<< "Q:[";
-        for (map<int,set<int>>::iterator iter=Q.begin();iter!=Q.end();iter++){
-            cout << "var " << iter->first << ": vals <";
-            for(int val: iter->second){
-                cout<< val << " ";
-            }
-            cout << ">";
-        }
-        cout << "], h=" << heuristic << endl;
-}
 
-pair<int, map<int, set<int>>> IdastarSearch::computeRuleDatabaseHeuristic(State &state, int search_bound){
+
+pair<int, map<int, set<int>>> IdastarSearch::computeRuleDatabaseHeuristic(State &state, int search_bound, bool is_statistical){
     
     if(task_properties::is_goal_state(task_proxy,state)){
-        
         Q emptyQ;
         return make_pair(0,emptyQ);
     }else {
-        pair<int, map<int, set<int>>> rule = RuleDatabase.calculate(state, search_bound);
+        pair<int, map<int, set<int>>> rule = RuleDatabase.calculate(state, search_bound, is_statistical);
         return rule;
     }
 }
@@ -163,7 +227,7 @@ void IdastarSearch::updateRule(State &state,vector<OperatorID> applicable_operat
         if(find(applicable_operators.begin(), applicable_operators.end(),op.get_id())!=applicable_operators.end()){
             // applicable
             State successor = state_registry.get_successor_state(state, op);
-            pair<int, map<int, set<int>>> rule = computeRuleDatabaseHeuristic(successor,lookahead-get_adjusted_cost(op));
+            pair<int, map<int, set<int>>> rule = computeRuleDatabaseHeuristic(successor,lookahead-get_adjusted_cost(op), false);
             // pair<int, map<int, set<int>>> rule = computeRuleDatabaseHeuristic(successor,-1);
             vector<int> defined_vars;
             for (EffectProxy eff: op.get_effects()){
@@ -191,7 +255,7 @@ void IdastarSearch::updateRule(State &state,vector<OperatorID> applicable_operat
     }
     if (do_shrink)
         Q = shrink(Q);
-    RuleDatabase.update(lookahead, Q);
+    RuleDatabase.update(lookahead, Q, false);
 }
 
 
@@ -207,6 +271,7 @@ SearchStatus IdastarSearch::step() {
             RuleDatabase.dump();
         utils::g_log << "shrink count:" << shrink_count << endl;  
         utils::g_log << "total database size:" << RuleDatabase.get_count() << endl;  
+        RuleDatabase.output_statiticals();
         return SOLVED;
     }
 
@@ -282,7 +347,7 @@ int IdastarSearch::sub_search(vector<pair<StateID,OperatorID>> &path, int g) {
     EvaluationContext eval_context(current_state, g, false, &statistics);
     int h = eval_context.get_evaluator_value(evaluator.get());
     if (update){
-        h = max(computeRuleDatabaseHeuristic(current_state, -1).first, h);
+        h = max(computeRuleDatabaseHeuristic(current_state, -1, true).first, h);
     }
     statistics.inc_evaluated_states();
     int f = g + h;
@@ -335,7 +400,7 @@ int IdastarSearch::sub_search(vector<pair<StateID,OperatorID>> &path, int g) {
     }
     
     if (update && !timing_of_update) {
-        h = max(computeRuleDatabaseHeuristic(current_state, -1).first, h);
+        h = max(computeRuleDatabaseHeuristic(current_state, -1, true).first, h);
         pair<int, MyBestFirstOpenList> info2= get_lookahead(current_state,applicable_operators, g);
         // check lookahed
         int lookahead = info2.first;
