@@ -33,6 +33,9 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<bool>("t", "update timing");
     parser.add_option<bool>("s", "shrink");
     parser.add_option<bool>("i", "init rules");
+    parser.add_option<bool>("o", "output database");
+    parser.add_option<bool>("r", "read exist database");
+    
     SearchEngine::add_options_to_parser(parser);
     Options opts = parser.parse();
 

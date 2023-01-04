@@ -17,6 +17,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #include <limits>
 
 using namespace std;
@@ -97,6 +98,10 @@ void SearchEngine::search() {
     }
     // TODO: Revise when and which search times are logged.
     utils::g_log << "Actual search time: " << timer.get_elapsed_time() << endl;
+    fstream fout;
+    fout.open("results.csv", ios::out|ios::app);
+    fout << timer.get_elapsed_time();
+    fout.close();
 }
 
 bool SearchEngine::check_goal_and_set_plan(const State &state) {

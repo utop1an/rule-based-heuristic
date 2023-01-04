@@ -378,6 +378,7 @@ fast_downward_plugin(
     DEPENDS EAGER_SEARCH SEARCH_COMMON
 )
 
+
 fast_downward_plugin(
     NAME PLUGIN_IDASTAR
     HELP "Iterative deepening A* search algorithm"
@@ -450,11 +451,10 @@ fast_downward_plugin(
 
 fast_downward_plugin(
     NAME IDASTAR_SEARCH
-    HELP "Iterated d a algorithm"
+    HELP "Iterated deeping A* algorithm"
     SOURCES
         search_engines/idastar_search
         rule_database/my_best_first_open_list
-        rule_database/rule_database_ex
         rule_database/rule_tree_ex
 )
 
@@ -509,6 +509,7 @@ fast_downward_plugin(
         heuristics/zero_heuristic
     DEPENDS TASK_PROPERTIES
 )
+
 
 fast_downward_plugin(
     NAME CONTEXT_ENHANCED_ADDITIVE_HEURISTIC
