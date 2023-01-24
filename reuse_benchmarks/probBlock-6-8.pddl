@@ -1,0 +1,6 @@
+(define (problem BLOCKS-6-8)
+(:domain BLOCKS)
+(:objects A B C D E F)
+(:INIT (ON A B) (ON B E) (ON C D) (ONTABLE D) (ON E F) (ONTABLE F) (CLEAR A) (CLEAR C) (HANDEMPTY))
+(:goal (AND (ON B A) (ON C B) (ON D C) (ON E D) (ON F E) ))
+)

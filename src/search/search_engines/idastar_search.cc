@@ -25,7 +25,7 @@ IdastarSearch::IdastarSearch(const Options &opts)
       update(opts.get<bool>("u")),
       RuleDatabase(),
       debug(opts.get<bool>("d")),
-      timing_of_update(opts.get<bool>("t")),
+      timing_of_update(opts.get<int>("t")),
       do_shrink(opts.get<bool>("s")),
       do_init_rules(opts.get<bool>("i")),
       output_ruledatabase(opts.get<bool>("o")),
@@ -198,7 +198,7 @@ int IdastarSearch::sub_search(StateID cur_s, OperatorID cur_o, StateID prev_s, i
     vector<OperatorID> applicable_operators;
     successor_generator.generate_applicable_ops(current_state, applicable_operators);
     pair<int, MyBestFirstOpenList> info= get_lookahead(current_state,applicable_operators, g);
-    if (update && timing_of_update) {
+    if (update && (timing_of_update == 1 or timing_of_update==3)) {
         // check lookahed
         int lookahead = info.first;
         if (lookahead>h){
@@ -240,7 +240,7 @@ int IdastarSearch::sub_search(StateID cur_s, OperatorID cur_o, StateID prev_s, i
         
     }
     
-    if (update && !timing_of_update) {
+    if (update && (timing_of_update == 2 or timing_of_update==3)) {
         h = max(computeRuleDatabaseHeuristic(current_state, -1, true).first, h);
         pair<int, MyBestFirstOpenList> info2= get_lookahead(current_state,applicable_operators, g);
         // check lookahed

@@ -30,7 +30,7 @@ static shared_ptr<SearchEngine> _parse(OptionParser &parser) {
     parser.add_option<shared_ptr<Evaluator>>("h", "heurisitc");
     parser.add_option<bool>("u", "update");
     parser.add_option<bool>("d", "debug");
-    parser.add_option<bool>("t", "update timing");
+    parser.add_option<int>("t", "update timing");
     parser.add_option<bool>("s", "shrink");
     parser.add_option<bool>("i", "init rules");
     parser.add_option<bool>("o", "output database");

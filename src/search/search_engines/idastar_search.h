@@ -36,7 +36,7 @@ protected:
 
     // params
     bool update;
-    bool timing_of_update;
+    int timing_of_update;
     bool debug;
     bool do_shrink;
     bool do_init_rules;

@@ -1,9 +1,9 @@
 import os
 
 prefix = "./fast-downward.py --debug --search-time-limit 15m "
-hd = "--search 'idastar(h=zero(),u=true,d=false,t=false,s=true,i=true)'"
-hmax = "--search 'idastar(h=hmax(),u=false,d=false,t=false,s=false,i=false)'"
-hlmcut = "--search 'idastar(h=lmcut(),u=false,d=false,t=false,s=false,i=false)'"
+hd = "--search 'idastar(h=zero(),u=true,d=false,t=3,s=true,i=true,r=false, o=false)'"
+hmax = "--search 'idastar(h=hmax(),u=false,d=false,t=3,s=false,i=false,r=false, o=false)'"
+hlmcut = "--search 'idastar(h=lmcut(),u=false,d=false,t=3,s=false,i=false,r=false, o=false)'"
 base = "./benchmarks"
 domain_suffix = "/domain.pddl"
 

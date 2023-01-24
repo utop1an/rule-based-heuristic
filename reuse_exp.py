@@ -1,7 +1,7 @@
 import os
 
 prefix = "./fast-downward.py --debug --search-time-limit 15m "
-hd = "--search 'idastar(h=zero(),u=true,d=false,t=false,s=false,i=true, "
+hd = "--search 'idastar(h=zero(),u=true,d=false,t=3,s=false,i=true, "
 base = "./reuse_benchmarks"
 domain_suffix = "/domain.pddl"
 
@@ -22,8 +22,10 @@ with open("results.csv", mode='a') as results:
 os.system(cmd)
 
 with open("results.csv", mode='a') as results:
-        results.write("\n")
-        results.close()
+    results.seek(results.seek(0, os.SEEK_END) - 1)
+    results.truncate()
+    results.write("\n")
+    results.close()
 
 cmd = prefix + base  + domain_suffix + " " + base +  "/" + instances[0] + " " + hd + "r=true, o=false)'"
 with open("results.csv", mode='a') as results:
@@ -32,8 +34,10 @@ with open("results.csv", mode='a') as results:
 os.system(cmd)
 
 with open("results.csv", mode='a') as results:
-        results.write("\n")
-        results.close()
+    results.seek(results.seek(0, os.SEEK_END) - 1)
+    results.truncate()
+    results.write("\n")
+    results.close()
 instances = instances[1:]
 for inst in instances:
     if (inst!="domain.pddl"):
@@ -43,19 +47,24 @@ for inst in instances:
             results.close()
         os.system(cmd)
         
-        with open("results.csv", mode='a') as results:
-                results.write("\n")
-                results.close()
+        with open("results.csv", mode='a+') as results:
+            results.seek(results.seek(0, os.SEEK_END) - 1)
+            results.truncate()
+            results.write("\n")
+            results.close()
         
         cmd = prefix + base  + domain_suffix + " " + base +  "/" + inst + " " + hd + "r=true, o=false)'"
         with open("results.csv", mode='a') as results:
             results.write( inst + " with reuse,")
+            
             results.close()
         os.system(cmd)
         
-        with open("results.csv", mode='a') as results:
-                results.write("\n")
-                results.close()
+        with open("results.csv", mode='a+') as results:
+            results.seek(results.seek(0, os.SEEK_END) - 1)
+            results.truncate()
+            results.write("\n")
+            results.close()
     
 os.rename("results.csv", "reuse_results.csv")
     
